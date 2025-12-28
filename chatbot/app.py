@@ -1,5 +1,6 @@
 import os
 import base64
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -8,6 +9,7 @@ from google import genai
 from google.genai.errors import APIError
 
 from google.genai.types import Part, Content, GenerateContentConfig # PENTING: Import eksplisit Part dan Content
+load_dotenv()
 
 # --- Konfigurasi API ---
 # PENTING: Ambil API Key dari Environment Variable (Lebih aman dari hardcoding)
@@ -135,3 +137,4 @@ async def generate_content(request: GeminiRequest):
 # Jalankan dengan command: uvicorn app:app --reload
 
 # Ini akan berjalan di http://127.0.0.1:8000
+
