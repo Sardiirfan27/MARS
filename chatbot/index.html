@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website dengan Chatbot Gemini Tertanam</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            min-height: 200vh; /* Agar bisa scroll, mensimulasikan konten web nyata */
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* --- STYLING IFRAME CHATBOT (PENTING!) --- */
+        #gemini-chatbot-frame {
+            /* Posisi: Selalu di pojok kanan bawah, terlepas dari scrolling */
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            
+            /* Dimensi */
+            width: 380px; 
+            height: 600px; 
+
+            /* Styling */
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            
+            /* Pastikan Chatbot di atas konten website lainnya */
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+        <h1>Selamat Datang di Website Utama Kami</h1>
+        <p>Ini adalah contoh konten utama website Anda. Perhatikan bahwa Anda dapat terus membaca dan melakukan scrolling, sementara ikon chat atau jendela chat akan tetap berada di pojok kanan bawah berkat properti CSS `position: fixed` pada `iframe`.</p>
+        <p>Sebagai pakar Data Science dan AI, Anda pasti menyadari bahwa implementasi ini adalah cara tercepat dan paling terisolasi (sandboxed) untuk menanamkan aplikasi pihak ketiga. Segala masalah CSS atau JavaScript di dalam chatbot tidak akan memengaruhi konten website utama ini.</p>
+        <p>Silakan gulir ke bawah untuk melihat bagaimana chatbot tetap berada di posisinya.</p>
+        <div style="height: 1000px; background-color: #e0e0e0; padding: 20px; border-radius: 5px; margin-top: 30px;">
+            <p>Konten panjang website...</p>
+        </div>
+    </div>
+
+
+    <iframe 
+    id="gemini-chatbot-frame"
+    src="http://127.0.0.1:5500/chatbot/chatbot-standalone.html" 
+    style="box-shadow: 0 0 0 rgba(0,0,0,0);"
+    title="Gemini AI Chatbot"
+    allow="microphone; geolocation">
+    </iframe>
+
+    </body>
+</html>

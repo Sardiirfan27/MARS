@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chatbot Gemini - Full Featured</title>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+/* Global Reset and Font */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: transparent
+    
+}
+
+/* Container Utama (Floating Button & Hint) */
+.floating-chat-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    display: flex; /* Dikelola oleh JS (openChat/toggleChat) */
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+/* 1. Chat Hint Bubble */
+.chat-hint {
+    background: white;
+    color: #444;
+    padding: 12px 18px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    font-size: 16px;
+    font-weight: 500;
+    width: 150px;
+    text-align: center;
+    position: relative;
+    opacity: 1; 
+    transition: opacity 0.3s;
+}
+
+/* Tail/Arrow untuk Hint */
+.chat-hint::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+}
+
+/* Floating Chat Button */
+.chat-button {
+    background: #111;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.chat-button:hover {
+    background: #222;
+    transform: scale(1.02);
+}
+
+/* Chat Window (Dimensi Optimal) */
+.chat-window {
+    position: fixed;
+    bottom: 40px; /* Posisi baru */
+    right: 25px;
+    width: 350px; /* Lebar baru */
+    max-width: 90vw;
+    height: 550px;
+    background: #E5DDD5; 
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    display: none; 
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 999; /* Sedikit lebih rendah dari container (1000) */
+}
+
+.bot-icon {
+    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    margin-right: 8px;
+    border-radius: 50%;
+    color: #00BCD4; 
+}
+
+/* Chat Header (WA Style) */
+.chat-header {
+    background: #010b0a; 
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Memastikan tombol di header sejajar */
+.chat-header div {
+    display: flex;
+    align-items: center;
+}
+
+.close-button, .reset-button {
+    cursor: pointer;
+    font-size: 1.2em;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.close-button:hover, .reset-button:hover {
+    opacity: 1;
+}
+
+/* Tombol Reset Baru */
+.reset-button {
+    font-size: 1.1em;
+    margin-right: 15px; 
+}
+
+/* Chat Area */
+.messages {
+    flex: 1;
+    padding: 10px 15px;
+    overflow-y: auto;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#ECE5DD"/><circle cx="5" cy="5" r="1" fill="rgba(0,0,0,0.08)"/></svg>');
+}
+.messages::-webkit-scrollbar {
+    width: 8px;
+}
+.messages::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+/* Message Bubbles (WA Style) */
+.msg {
+    margin-bottom: 10px;
+    max-width: 85%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+}
+
+.msg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    border: 6px solid transparent;
+}
+
+.user {
+    background: #DCF8C6; 
+    color: #333;
+    margin-left: auto;
+    border-top-right-radius: 0;
+}
+.user::before {
+    border-left-color: #DCF8C6;
+    right: -5px;
+}
+
+.bot {
+    background: white; 
+    color: #333;
+    margin-right: auto;
+    border-top-left-radius: 0;
+}
+.bot::before {
+    border-right-color: white;
+    left: -5px;
+}
+
+.msg img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Input Area */
+.input-area {
+    padding: 10px;
+    background: #f0f0f0; 
+    border-top: 1px solid #ddd;
+    z-index: 10;
+}
+.input-controls {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+/* Image Preview Container */
+.preview-container {
+    padding: 8px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+    display: none; 
+}
+#preview {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 6px;
+    display: block;
+}
+.remove-preview {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4d4d;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Input Elements (WA Style) */
+input[type=text] {
+    flex: 1;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: none;
+    background: white;
+    font-size: 14px;
+    outline: none;
+    resize: none; 
+    min-height: 20px;
+    max-height: 100px;
+}
+
+/* Ikon Attachment (WA Style) */
+.icon-button {
+    background: transparent;
+    color: #777;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    transition: color 0.2s;
+    /* PENTING: Untuk memastikan ikon upload dapat diklik */
+    z-index: 2; 
+    position: relative; 
+}
+.icon-button:hover {
+    color: #075E54;
+}
+.attachment-container {
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding: 0 5px;
+    position: relative;
+}
+.attachment-container input[type=text] {
+    border-radius: 0;
+    padding: 10px 0;
+    /* Tambahkan padding kanan agar input tidak menutupi ikon */
+    padding-right: 5px; 
+}
+
+
+/* Send Button (WA Style - Round Green) */
+.send-button {
+    background: #008069; 
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+    z-index: 10; /* Pastikan tombol kirim selalu bisa diklik */
+}
+.send-button:hover {
+    background: #075E54;
+}
+
+/* CSS untuk animasi titik loading */
+@keyframes loading-dots {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+}
+.loading-message span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #555; 
+    margin-left: 3px;
+    animation: loading-dots 1.5s infinite ease-in-out both;
+}
+.loading-message span:nth-child(1) { animation-delay: -0.32s; }
+.loading-message span:nth-child(2) { animation-delay: -0.16s; }
+
+/* Gaya untuk Markdown Output */
+.msg.bot pre {
+    background: #eee; 
+    padding: 8px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+}
+.msg.bot code { font-family: Consolas, monospace; }
+.msg.bot h1, .msg.bot h2, .msg.bot h3 { margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+.msg.bot ul, .msg.bot ol { margin-left: 15px; padding-left: 0; }
+
+</style>
+</head>
+<body>
+
+<div class="floating-chat-container">
+    <div class="chat-hint" id="chatHint">
+        Come speak to me!
+    </div>
+
+    <div class="chat-button" onclick="openChat()">
+        <span class="bot-icon">🤖</span>
+        Click on me!
+    </div>
+</div>
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div style="display: flex; align-items: center;">
+            <span class="header-title">🤖 AI-NOID</span>
+        </div>
+        <div>
+            <span class="reset-button" onclick="resetChat()">🔄</span> 
+            <span class="close-button" onclick="toggleChat()">✖</span>
+        </div>
+    </div>
+    <div class="messages" id="messages"></div>
+
+    <div class="input-area">
+        <div class="preview-container" id="previewContainer">
+            <img id="preview" />
+            <span class="remove-preview" onclick="clearImagePreview()">✖</span>
+        </div>
+        
+        <div class="input-controls">
+            <div class="attachment-container">
+                <input type="text" id="textInput" placeholder="Ketik pesan...">
+                <label class="icon-button attachment-button" for="imageInput">🔗</label> 
+            </div>
+            <input type="file" id="imageInput" accept="image/*" style="display:none">
+            
+            <button class="send-button" onclick="sendMsg()">▶️</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// =================================================================
+// KONFIGURASI DAN INICIALISASI
+// =================================================================
+
+// Ganti dengan API Key Gemini Anda yang sesungguhnya
+const API_KEY = "AIzaSyDW0Z4WV__lPlL1muPlmIaukRMNWELFib0";
+
+// DOM Elements
+const floatingContainer = document.querySelector(".floating-chat-container");
+const chatWindow = document.getElementById("chatWindow");
+const messagesBox = document.getElementById("messages");
+const textInput = document.getElementById("textInput");
+const imageInput = document.getElementById("imageInput");
+const preview = document.getElementById("preview");
+const previewContainer = document.getElementById("previewContainer");
+const chatHint = document.getElementById("chatHint");
+
+// STATE MANAGEMENT
+let selectedImage = null; // Menyimpan objek File
+let chatHistory = []; // Menyimpan riwayat percakapan untuk konteks
+
+// =================================================================
+// FUNGSI UTILITY (Tampilan dan State)
+// =================================================================
+
+// Fungsi untuk membuka chat window
+function openChat() {
+    chatWindow.style.display = "flex";
+    // PENTING: Menyembunyikan floating container untuk menghindari konflik z-index
+    floatingContainer.style.display = "none"; 
+    
+    // Memberi sambutan saat chat dibuka (jika belum ada history)
+    if (messagesBox.children.length === 0) {
+        addMessage("Halo! Saya AI Gemini. Bagaimana saya bisa membantu Anda hari ini?", "bot");
+    }
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+
+// Fungsi untuk menutup chat window (dipanggil dari tombol X)
+function toggleChat() { 
+    chatWindow.style.display = "none";
+    // Menampilkan kembali floating container
+    floatingContainer.style.display = "flex"; 
+    chatHint.style.opacity = '1';
+    chatHint.style.pointerEvents = 'auto';
+}
+
+// Fungsi untuk mereset seluruh sesi chat (Dipanggil dari tombol 🔄)
+function resetChat() {
+    chatHistory = []; // Reset History
+    messagesBox.innerHTML = ""; // Bersihkan tampilan
+    textInput.value = "";
+    clearImagePreview();
+    addMessage("Sesi chat baru telah dimulai. Silakan bertanya!", "bot");
+}
+
+// Menghapus pratinjau gambar
+function clearImagePreview() {
+    selectedImage = null;
+    imageInput.value = ""; 
+    preview.src = "";
+    previewContainer.style.display = "none";
+}
+
+// Handler pratinjau gambar
+imageInput.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+        alert("File yang diunggah harus berupa gambar.");
+        clearImagePreview();
+        return;
+    }
+
+    selectedImage = file;
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    previewContainer.style.display = "block";
+};
+
+// Utility function to convert File to Base64
+function toBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+// Menambahkan pesan ke tampilan UI
+function addMessage(text, sender = "bot", imgURL = null, messageId = null, is_loading = false) {
+    const div = document.createElement("div");
+    div.className = `msg ${sender}`;
+
+    if (messageId) {
+        div.id = messageId;
+    }
+
+    if (imgURL) {
+        const im = document.createElement("img");
+        im.src = imgURL;
+        im.alt = "Gambar terlampir";
+        div.appendChild(im);
+    }
+
+    if (text) {
+        if (is_loading) {
+            const loadingDiv = document.createElement("div");
+            loadingDiv.className = "loading-message";
+            loadingDiv.innerHTML = `${text}<span></span><span></span><span></span>`;
+            div.appendChild(loadingDiv);
+        } else {
+            // Merender Markdown untuk balasan Bot
+            if (sender === "bot") {
+                div.innerHTML += marked.parse(text); 
+            } else {
+                // Untuk user, gunakan innerText
+                const textNode = document.createElement("span");
+                textNode.innerText = text;
+                div.appendChild(textNode);
+            }
+        }
+    }
+
+    messagesBox.appendChild(div);
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+    return div;
+}
+
+
+// =================================================================
+// FUNGSI UTAMA (Interaksi API)
+// =================================================================
+
+async function sendMsg() {
+    const text = textInput.value.trim();
+    if (!text && !selectedImage) return;
+
+    const fileToProcess = selectedImage; 
+    const imgURL = fileToProcess ? URL.createObjectURL(fileToProcess) : null;
+
+    // Tampilkan pesan user di UI
+    addMessage(text, "user", imgURL);
+
+    // Bersihkan input dan preview
+    textInput.value = "";
+    clearImagePreview(); 
+
+    // --- LOGIKA PESAN LOADING ---
+    const loadingMessageId = "loading-" + Date.now();
+    const loadingElement = addMessage("Sedang memproses", "bot", null, loadingMessageId, true);
+    // ----------------------------
+
+    // 1. Build parts untuk pesan user saat ini
+    const userParts = [];
+    if (text) userParts.push({ text });
+
+    // Konversi gambar ke Base64 jika ada
+    if (fileToProcess) {
+        try {
+            const base64 = await toBase64(fileToProcess);
+            userParts.push({
+                inline_data: {
+                    mime_type: fileToProcess.type,
+                    data: base64.split(",")[1]
+                }
+            });
+        } catch (e) {
+            loadingElement.remove();
+            addMessage("⚠️ Gagal memproses gambar.", "bot");
+            console.error("Error konversi Base64:", e);
+            return;
+        }
+    }
+    
+    // 2. Tambahkan pesan user saat ini ke history
+    // NOTE: Ini adalah bagian terakhir dari history yang akan dikirim
+    chatHistory.push({ role: "user", parts: userParts });
+
+    // 3. Persiapkan body request: Kirim seluruh history sebagai konteks
+    const requestBody = {
+        contents: chatHistory 
+    };
+    
+    // 4. Panggilan API (fetch)
+    try {
+        const resp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody)
+            }
+        );
+
+        const data = await resp.json();
+        const botReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "⚠️ Tidak ada respon dari Gemini.";
+        
+        // Cek jika ada error dari API (misalnya API key tidak valid atau kuota habis)
+        if (data.error) {
+            throw new Error(data.error.message || "API error tak terduga.");
+        }
+
+        loadingElement.remove(); 
+        addMessage(botReply, "bot");
+        
+        // 5. Simpan balasan Bot ke history (PENTING untuk kelanjutan sesi!)
+        chatHistory.push({ 
+            role: "model", 
+            parts: [{ text: botReply }] 
+        });
+        
+    } catch (err) {
+        loadingElement.remove(); 
+        addMessage(`⚠️ Terjadi error: ${err.message || 'API gagal merespons.'}`, "bot");
+        console.error("Fetch Error:", err);
+        
+        // Jika API gagal, hapus pesan user terakhir dari history 
+        // agar history tidak tercampur dengan permintaan gagal
+        chatHistory.pop(); 
+    }
+}
+
+// Agar tombol 'Kirim' juga berfungsi dengan Enter
+textInput.addEventListener("keypress", function(event) {
+    if (event.key === "Enter" && !event.shiftKey) { 
+        event.preventDefault();
+        sendMsg();
+    }
+});
+
+
+</script>
+
+</body>
+</html>

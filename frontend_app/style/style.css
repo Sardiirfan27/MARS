@@ -1,0 +1,75 @@
+/* Root Variables */
+:root {
+    --primary-gradient: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
+    --secondary-gradient: linear-gradient(135deg, #2D2D2D 0%, #1E1E1E 100%);
+    --accent-color: #00B4DB;
+    --bg-dark: #1E1E1E;
+    --bg-darker: #171717;
+    --bg-light: #2D2D2D;
+    --text-primary: #E0E0E0;
+    --text-secondary: #B0B0B0;
+    --border-color: #3D3D3D;
+    --success-color: #4CAF50;
+    --warning-color: #FFA726;
+    --error-color: #F44336;
+}
+
+
+/*====STREAMLIT SIDEBAR CUSTOM STYLE===*/
+/* Styling sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #1E293B;
+    color: #fff;
+}
+
+/* Styling tombol sidebar */
+div.st-key-search-button > div.stButton > button {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 1rem 1.8rem; 
+    border-radius: 10px;  
+    font-size: 1.05rem;   
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+}
+
+/* Hover dan active */
+div.st-key-search-button > div.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+}
+
+.stIFrame {
+    position: fixed;
+    bottom: 20px;
+    right: 100px;
+    width: 380px;
+    height: 600px;
+    border: none;
+    background-color: transparent;
+    z-index: 9999;
+}
+
+#gemini-chatbot-frame {
+/* Posisi: Selalu di pojok kanan bawah, terlepas dari scrolling */
+position: fixed;
+bottom: 20px;
+right: 20px;
+
+/* Dimensi */
+width: 380px; 
+height: 600px; 
+
+/* Styling */
+border: none;
+border-radius: 15px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+
+/* Pastikan Chatbot di atas konten website lainnya */
+z-index: 9999;
+}
+
