@@ -14,7 +14,7 @@ from google.genai.types import Part, Content, GenerateContentConfig # PENTING: I
 # Pastikan Anda mengatur GEMINI_API_KEY di lingkungan server Anda
 # Jika tidak bisa menggunakan Environment Variable, ganti 'os.getenv("GEMINI_API_KEY")'
 # dengan API Key Anda sebagai string. Contoh: client = genai.Client(api_key="AIza...")
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDW0Z4WV__lPlL1muPlmIaukRMNWELFib0") 
+API_KEY = os.getenv("GEMINI_API_KEY", "AIz-----") 
 client = genai.Client(api_key=API_KEY)
 model='gemini-2.5-flash-lite'
 
@@ -133,4 +133,5 @@ async def generate_content(request: GeminiRequest):
 
 # --- Jalankan Server ---
 # Jalankan dengan command: uvicorn app:app --reload
+
 # Ini akan berjalan di http://127.0.0.1:8000
