@@ -1,4 +1,4 @@
-# 🪐 MARS (*Multimodal AI-Powered Furniture Recommender System*)
+# MARS (*Multimodal AI-Powered Furniture Recommender System*)
 
 **MARS** adalah aplikasi cerdas berbasis **Artificial Intelligence (AI)** yang dirancang untuk membantu pengguna menemukan furnitur yang paling sesuai dengan preferensi pribadi mereka, seperti **warna produk, bahan, gaya, dan atribut lainnya**.
 
